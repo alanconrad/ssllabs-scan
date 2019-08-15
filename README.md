@@ -1,5 +1,6 @@
 # ssllabs-scan
 Python script to automate security scanning of websites using Qualys SSL Server Testing
+Usage: ssllabs-scan <input_file>
 
 # Build and run
 ## Linux
