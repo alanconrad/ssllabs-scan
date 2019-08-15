@@ -1,6 +1,6 @@
-"""
+'''
 See APi doc: https://github.com/ssllabs/ssllabs-scan/blob/stable/ssllabs-api-docs.md
-"""
+'''
 from datetime import datetime
 import json
 import os
@@ -51,7 +51,9 @@ class SSLLabsClient():
         self.__check_progress_interval_secs = check_progress_interval_secs
 
 
-    # Write scanned results to server's own json file
+    '''
+    Write scanned results to server's own json file
+    '''
     def analyze(self, host, summary_csv_file, owner):
         data = self.start_new_scan(host=host)
         # Removes everything after & including the '/' character in URLs as '/' cannot be in file names
@@ -71,7 +73,9 @@ class SSLLabsClient():
         self.append_summary_csv(summary_csv_file, host, data, owner)
 
 
-    # Run a SSLLABS scan on a server
+    '''
+    Run a SSLLABS scan on a server
+    '''
     def start_new_scan(self, host, publish="off", startNew="on", all="done", ignoreMismatch="on"):
         path = API_URL
         payload = {
@@ -89,24 +93,33 @@ class SSLLabsClient():
         return results
 
 
+    '''
+    Access API
+    '''
     @staticmethod
     def request_api(url, payload):
         response = requests.get(url, params=payload)
         return response.json()
 
 
+    '''
+    Converts epoch time to readable time format
+    '''
     @staticmethod
     def prepare_datetime(epoch_time):
         # SSL Labs returns an 13-digit epoch time that contains milliseconds, Python only expects 10 digits (seconds)
         return datetime.utcfromtimestamp(float(str(epoch_time)[:10])).strftime("%Y-%m-%d")
 
 
-    # Summarize all json data into html file
+    '''
+    Summarize all json data into html file
+    '''
     def append_summary_csv(self, summary_file, host, data, owner):
         # write the summary to file
         with open(os.path.join(m.PATH, summary_file), "a") as outfile:
             proto = data['protocol']
             for dep in data['endpoints']:
+                # Some servers don't have a serverSignature field in their .JSON
                 try:
                     server_sig = dep["details"]["serverSignature"]
                 except:
