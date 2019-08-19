@@ -1,4 +1,3 @@
-
 import csv
 import os
 import shutil
@@ -92,7 +91,6 @@ def process(server_list_file, check_progress_interval_secs=10,
     output_summary_html(summary_csv, summary_html)
     return ret
 
-
 '''
 Returns list of servers from the input file
 '''
@@ -110,7 +108,6 @@ def get_servers(server_list_file, content):
             server = server[7:]
         servers.append(server)
     return servers
-
 
 '''
 Returns list of owners from the input file
@@ -139,7 +136,6 @@ def get_owners(server_list_file, content):
         except:
             owners.append('N/A')
     return owners
-
 
 '''
 Entry point of the script

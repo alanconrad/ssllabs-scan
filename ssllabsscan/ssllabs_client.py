@@ -14,11 +14,10 @@ CHAIN_ISSUES = {
     "0": "none",
     "1": "unused",
     "2": "incomplete chain",
-    "4": "chain contains unrelated or duplicate certificates",
-    "8": "the certificates form a chain, but the order is incorrect",
+    "4": "chain contains unrelated or duplicate certs",
+    "8": "chain but the order is incorrect",
     "16": "contains a self-signed root certificate",
-    "24": "Manual scan needed",
-    "32": "the certificates form a chain but cannot be validated",
+    "32": "chain but can't be validated"
 }
 
 # Forward secrecy protects past sessions against future compromises of secret keys or passwords.
@@ -50,7 +49,6 @@ class SSLLabsClient():
     def __init__(self, check_progress_interval_secs=10):
         self.__check_progress_interval_secs = check_progress_interval_secs
 
-
     '''
     Write scanned results to server's own json file
     '''
@@ -72,7 +70,6 @@ class SSLLabsClient():
         # write the summary to file
         self.append_summary_csv(summary_csv_file, host, data, owner)
 
-
     '''
     Run a SSLLABS scan on a server
     '''
@@ -92,6 +89,31 @@ class SSLLabsClient():
             results = self.request_api(path, payload)
         return results
 
+    '''
+    Takes in bit value representing number of flags in a host's chain issues
+    Unpacks the bit values and returns list of issues
+    '''
+    def get_chain_issues(self, val):
+        result = []
+        val = int(val)
+        # If host has 0 issues
+        if val == 0:
+            result = CHAIN_ISSUES[str(0)]
+            return result
+        if val & (1 << 0):
+            result.append(CHAIN_ISSUES[str(1)])
+        if val & (1 << 1):
+            result.append(CHAIN_ISSUES[str(2)])
+        if val & (1 << 2):
+            result.append(CHAIN_ISSUES[str(4)])
+        if val & (1 << 3):
+            result.append(CHAIN_ISSUES[str(8)])
+        if val & (1 << 4):
+            result.append(CHAIN_ISSUES[str(16)])
+        if val & (1 << 5):
+            result.append(CHAIN_ISSUES[str(32)])
+        result = ' AND '.join(result)
+        return result
 
     '''
     Access API
@@ -101,7 +123,6 @@ class SSLLabsClient():
         response = requests.get(url, params=payload)
         return response.json()
 
-
     '''
     Converts epoch time to readable time format
     '''
@@ -109,7 +130,6 @@ class SSLLabsClient():
     def prepare_datetime(epoch_time):
         # SSL Labs returns an 13-digit epoch time that contains milliseconds, Python only expects 10 digits (seconds)
         return datetime.utcfromtimestamp(float(str(epoch_time)[:10])).strftime("%Y-%m-%d")
-
 
     '''
     Summarize all json data into html file
@@ -125,9 +145,9 @@ class SSLLabsClient():
                 except:
                     server_sig = "N/A"
                 try:
-                    chain_issues = CHAIN_ISSUES[str(dep["details"]["chain"]["issues"])]
+                    chain_issues = self.get_chain_issues(str(dep["details"]["chain"]["issues"]))
                 except:
-                    chain_issues = "Manual scan needed"
+                    chain_issues = "N/A"
             for ep in data["endpoints"]:
                 # see SUMMARY_COL_NAMES
                 summary = [
