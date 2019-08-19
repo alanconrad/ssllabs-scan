@@ -15,9 +15,9 @@ CHAIN_ISSUES = {
     "1": "unused",
     "2": "incomplete chain",
     "4": "chain contains unrelated or duplicate certs",
-    "8": "chain but the order is incorrect",
+    "8": "chain order is incorrect",
     "16": "contains a self-signed root certificate",
-    "32": "chain but can't be validated"
+    "32": "chain can't be validated"
 }
 
 # Forward secrecy protects past sessions against future compromises of secret keys or passwords.
@@ -138,17 +138,20 @@ class SSLLabsClient():
         # write the summary to file
         with open(os.path.join(m.PATH, summary_file), "a") as outfile:
             proto = data['protocol']
-            for dep in data['endpoints']:
-                # Some servers don't have a serverSignature field in their .JSON
+            for ep in data["endpoints"]:
+                # Some servers don't report certain fields if it cannot detect it
                 try:
-                    server_sig = dep["details"]["serverSignature"]
+                    server_sig = ep["details"]["serverSignature"]
                 except:
                     server_sig = "N/A"
                 try:
-                    chain_issues = self.get_chain_issues(str(dep["details"]["chain"]["issues"]))
+                    chain_issues = self.get_chain_issues(str(ep["details"]["chain"]["issues"]))
                 except:
                     chain_issues = "N/A"
-            for ep in data["endpoints"]:
+                try:
+                    server_name =ep["serverName"]
+                except:
+                    server_name = "N/A"
                 # see SUMMARY_COL_NAMES
                 summary = [
                     host,
@@ -161,7 +164,7 @@ class SSLLabsClient():
                     chain_issues,
                     FORWARD_SECRECY[str(ep["details"]["forwardSecrecy"])],
                     ep["details"]["heartbeat"],
-                    ep["serverName"],
+                    server_name,
                     proto,
                     server_sig,
                     ep["details"]["httpStatusCode"],
