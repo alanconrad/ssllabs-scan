@@ -54,8 +54,8 @@ class SSLLabsClient():
     '''
     def analyze(self, host, summary_csv_file, owner):
         data = self.start_new_scan(host=host)
-        # Removes everything after & including the '/' character in URLs as '/' cannot be in file names
-        host = host.split('/')[0]
+        # Replaces / with _ 
+        host = host.replace('/', '_')
         # Check if 'json_data' directory exists before writing to it
         if os.path.exists(os.path.join(m.PATH, 'json_data')):
             json_file = os.path.join(os.path.join(m.PATH, "json_data"), f"{host}.json")
