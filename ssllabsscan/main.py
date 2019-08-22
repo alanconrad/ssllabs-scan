@@ -1,3 +1,4 @@
+
 import csv
 import os
 import shutil
@@ -49,7 +50,7 @@ def output_summary_html(input_csv, output_html):
 '''
 Runs scans on each server
 '''
-def process(server_list_file, check_progress_interval_secs=10,
+def process(server_list_file, check_progress_interval_secs=15,
         summary_csv=SUMMARY_CSV, summary_html=SUMMARY_HTML):
     # Open input file to read in servers / owners
     with open(server_list_file) as f:
@@ -144,7 +145,7 @@ def main():
     if len(sys.argv) != 2:
         print("{} [SERVER_LIST_FILE]".format(sys.argv[0]))
         return 1
-    print("Starting...")
+    print("Starting...\n")
     return process(server_list_file=sys.argv[1])
 
 

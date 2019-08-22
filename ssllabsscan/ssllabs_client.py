@@ -46,7 +46,7 @@ SUMMARY_COL_NAMES = [
 
 
 class SSLLabsClient():
-    def __init__(self, check_progress_interval_secs=10):
+    def __init__(self, check_progress_interval_secs=15):
         self.__check_progress_interval_secs = check_progress_interval_secs
 
     '''
@@ -138,51 +138,51 @@ class SSLLabsClient():
         # write the summary to file
         with open(os.path.join(m.PATH, summary_file), "a") as outfile:
             proto = data['protocol']
-            for ep in data["endpoints"]:
-                # Some servers don't report certain fields if it cannot detect it
-                try:
-                    server_sig = ep["details"]["serverSignature"]
-                except:
-                    server_sig = "N/A"
-                try:
-                    chain_issues = self.get_chain_issues(str(ep["details"]["chain"]["issues"]))
-                except:
-                    chain_issues = "N/A"
-                try:
-                    server_name =ep["serverName"]
-                except:
-                    server_name = "N/A"
-                # see SUMMARY_COL_NAMES
-                summary = [
-                    host,
-                    ep["grade"],
-                    ep['gradeTrustIgnored'],
-                    owner,
-                    ep["hasWarnings"],
-                    ep["details"]["cert"]["issuerLabel"],
-                    self.prepare_datetime(ep["details"]["cert"]["notAfter"]),
-                    chain_issues,
-                    FORWARD_SECRECY[str(ep["details"]["forwardSecrecy"])],
-                    ep["details"]["heartbeat"],
-                    server_name,
-                    proto,
-                    server_sig,
-                    ep["details"]["httpStatusCode"],
-                    ep["details"]["cert"]["sigAlg"],
-                    ep["details"]["vulnBeast"],
-                    ep["details"]["drownVulnerable"],
-                    ep["details"]["heartbleed"],
-                    ep["details"]["freak"],
-                    False if ep["details"]["openSslCcs"] == 1 else True,
-                    False if ep["details"]["openSSLLuckyMinus20"] == 1 else True,
-                    ep["details"]["poodle"],
-                    False if ep["details"]["poodleTls"] == 1 else True,
-                ]
-                for protocol in PROTOCOLS:
-                    found = False
-                    for p in ep["details"]["protocols"]:
-                        if protocol.startswith(f"{p['name']} {p['version']}"):
-                            found = True
-                            break
-                    summary += ["Yes" if found is True else "No"]
-                outfile.write(",".join(str(s) for s in summary) + "\n")
+            # Only parse through first ['endpoint'] as some sites have multiple hostnames.
+            # Some servers don't report certain fields if it cannot detect it
+            try:
+                server_sig = data["endpoints"][0]["details"]["serverSignature"]
+            except:
+                server_sig = "N/A"
+            try:
+                chain_issues = self.get_chain_issues(str(data["endpoints"][0]["details"]["chain"]["issues"]))
+            except:
+                chain_issues = "N/A"
+            try:
+                server_name = data["endpoints"][0]["serverName"]
+            except:
+                server_name = "N/A"
+            # see SUMMARY_COL_NAMES
+            summary = [
+                host,
+                data["endpoints"][0]["grade"],
+                data["endpoints"][0]['gradeTrustIgnored'],
+                owner,
+                data["endpoints"][0]["hasWarnings"],
+                data["endpoints"][0]["details"]["cert"]["issuerLabel"],
+                self.prepare_datetime(data["endpoints"][0]["details"]["cert"]["notAfter"]),
+                chain_issues,
+                FORWARD_SECRECY[str(data["endpoints"][0]["details"]["forwardSecrecy"])],
+                data["endpoints"][0]["details"]["heartbeat"],
+                server_name,
+                proto,
+                server_sig,
+                data["endpoints"][0]["details"]["httpStatusCode"],
+                data["endpoints"][0]["details"]["cert"]["sigAlg"],
+                data["endpoints"][0]["details"]["vulnBeast"],
+                data["endpoints"][0]["details"]["drownVulnerable"],
+                data["endpoints"][0]["details"]["heartbleed"],
+                data["endpoints"][0]["details"]["freak"],
+                False if data["endpoints"][0]["details"]["openSslCcs"] == 1 else True,
+                False if data["endpoints"][0]["details"]["openSSLLuckyMinus20"] == 1 else True,
+                data["endpoints"][0]["details"]["poodle"],
+                False if data["endpoints"][0]["details"]["poodleTls"] == 1 else True,
+            ]
+            for protocol in PROTOCOLS:
+                found = False
+                for p in data["endpoints"][0]["details"]["protocols"]:
+                    if protocol.startswith(f"{p['name']} {p['version']}"):
+                        found = True
+                        break
+                summary += ["Yes" if found is True else "No"]
+            outfile.write(",".join(str(s) for s in summary) + "\n")
